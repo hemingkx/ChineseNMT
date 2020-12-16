@@ -26,7 +26,9 @@ def subsequent_mask(size):
 
 class Batch:
     """Object for holding a batch of data with mask during training."""
-    def __init__(self, src, trg=None, pad=0):
+    def __init__(self, src_text, trg_text, src, trg=None, pad=0):
+        self.src_text = src_text
+        self.trg_text = trg_text
         src = src.to(DEVICE)
         trg = trg.to(DEVICE)
         self.src = src
@@ -59,8 +61,8 @@ class MTDataset(Dataset):
         self.sp_eng = english_tokenizer_load()
         self.sp_chn = chinese_tokenizer_load()
         self.PAD = self.sp_eng.pad_id()
-        self.BOS = self.sp_eng.bos_id()
-        self.EOS = self.sp_eng.eos_id()
+        self.BOS = self.sp_eng.bos_id()  # 2
+        self.EOS = self.sp_eng.eos_id()  # 3
 
     @staticmethod
     def len_argsort(seq):
@@ -101,15 +103,19 @@ class MTDataset(Dataset):
         batch_target = pad_sequence([torch.LongTensor(np.array(l_)) for l_ in tgt_tokens],
                                     batch_first=True, padding_value=self.PAD)
 
-        return Batch(batch_input, batch_target, self.PAD)
+        return Batch(src_text, tgt_text, batch_input, batch_target, self.PAD)
 
 
 if __name__ == "__main__":
-    dataset = MTDataset('./data/test.json')
+    dataset = MTDataset(config.test_data_path)
     dataloader = DataLoader(dataset, batch_size=2, shuffle=True, collate_fn=dataset.collate_fn)
     for batch in dataloader:
         src = batch.src
         trg = batch.trg
+        src_t = batch.src_text
+        tgt_t = batch.trg_text
         print(src[0])
         print(trg[0])
+        print(tgt_t[0])
+        print(src_t[0])
         break

@@ -5,9 +5,9 @@ import logging
 import torch
 from torch.utils.data import DataLoader
 
-from train import train
+from train import train, test
 from data_loader import MTDataset
-from model import make_model, LabelSmoothing
+from model import make_model
 
 
 def run():
@@ -22,7 +22,7 @@ def run():
                                   collate_fn=train_dataset.collate_fn)
     dev_dataloader = DataLoader(dev_dataset, shuffle=False, batch_size=config.batch_size,
                                 collate_fn=dev_dataset.collate_fn)
-    test_dataloader = DataLoader(test_dataset, shuffle=False, batch_size=config.batch_size,
+    test_dataloader = DataLoader(test_dataset, shuffle=True, batch_size=config.batch_size,
                                  collate_fn=test_dataset.collate_fn)
 
     logging.info("-------- Get Dataloader! --------")
@@ -32,9 +32,10 @@ def run():
                        config.d_model, config.d_ff, config.n_heads, config.dropout)
 
     # 训练
-    criterion = LabelSmoothing(config.tgt_vocab_size, padding_idx=0, smoothing=0.0)
+    criterion = torch.nn.CrossEntropyLoss(ignore_index=0, reduction='sum')
     optimizer = torch.optim.AdamW(model.parameters(), lr=config.lr)
     train(train_dataloader, dev_dataloader, model, criterion, optimizer)
+    test(test_dataloader, model, criterion)
 
 
 if __name__ == "__main__":

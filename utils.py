@@ -1,5 +1,6 @@
-import sentencepiece as spm
+import os
 import logging
+import sentencepiece as spm
 
 
 def chinese_tokenizer_load():
@@ -25,6 +26,8 @@ def set_logger(log_path):
     Args:
         log_path: (string) where to log
     """
+    if os.path.exists(log_path) is True:
+        os.remove(log_path)
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
 

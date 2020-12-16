@@ -1,7 +1,3 @@
-"""
-代码实现参考：http://nlp.seas.harvard.edu/2018/04/03/attention.html
-中文注释资源：https://zhuanlan.zhihu.com/p/144825330
-"""
 import config
 from data_loader import subsequent_mask
 
@@ -306,50 +302,7 @@ def make_model(src_vocab, tgt_vocab, N=6, d_model=512, d_ff=2048, h=8, dropout=0
     return model.to(DEVICE)
 
 
-class LabelSmoothing(nn.Module):
-    """标签平滑处理"""
-
-    def __init__(self, size, padding_idx, smoothing=0.0):
-        super(LabelSmoothing, self).__init__()
-        self.criterion = nn.KLDivLoss(reduction='sum')
-        self.padding_idx = padding_idx
-        self.confidence = 1.0 - smoothing
-        self.smoothing = smoothing
-        self.size = size
-        self.true_dist = None
-
-    def forward(self, x, target):
-        assert x.size(1) == self.size
-        true_dist = x.data.clone()
-        true_dist.fill_(self.smoothing / (self.size - 2))
-        true_dist.scatter_(1, target.data.unsqueeze(1), self.confidence)
-        true_dist[:, self.padding_idx] = 0
-        mask = torch.nonzero(target.data == self.padding_idx, as_tuple=False)
-        if mask.dim() > 0:
-            true_dist.index_fill_(0, mask.squeeze(), 0.0)
-        self.true_dist = true_dist
-        return self.criterion(x, Variable(true_dist, requires_grad=False))
-
-
-class SimpleLossCompute:
-    """简单的计算损失和进行参数反向传播更新训练的函数"""
-    def __init__(self, generator, criterion, opt=None):
-        self.generator = generator
-        self.criterion = criterion
-        self.opt = opt
-
-    def __call__(self, x, y, norm):
-        x = self.generator(x)
-        loss = self.criterion(x.contiguous().view(-1, x.size(-1)),
-                              y.contiguous().view(-1)) / norm
-        loss.backward()
-        if self.opt is not None:
-            self.opt.step()
-            self.opt.zero_grad()
-        return loss.data.item() * norm.float()
-
-
-def greedy_decode(model, src, src_mask, max_len, start_symbol):
+def greedy_decode(model, src, src_mask, max_len=64, start_symbol=2, end_symbol=3):
     """传入一个训练好的模型，对指定数据进行预测"""
     # 先用encoder进行encode
     memory = model.encode(src, src_mask)
@@ -367,6 +320,8 @@ def greedy_decode(model, src, src_mask, max_len, start_symbol):
         # 获取当前位置最大概率的预测词id
         _, next_word = torch.max(prob, dim=1)
         next_word = next_word.data[0]
+        if next_word == end_symbol:
+            break
         # 将当前位置预测的字符id与之前的预测内容拼接起来
         ys = torch.cat([ys,
                         torch.ones(1, 1).type_as(src.data).fill_(next_word)], dim=1)

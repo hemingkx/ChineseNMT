@@ -1,15 +1,15 @@
 import torch
-from torch.autograd import Variable
 
 import logging
 import sacrebleu
 from tqdm import tqdm
 
 import config
-from model import SimpleLossCompute
+from model import greedy_decode
+from utils import chinese_tokenizer_load
 
 
-def run_epoch(data, model, loss_compute, epoch):
+def run_epoch(data, model, loss_compute):
     total_tokens = 0.
     total_loss = 0.
 
@@ -19,66 +19,87 @@ def run_epoch(data, model, loss_compute, epoch):
 
         total_loss += loss
         total_tokens += batch.ntokens
-    logging.info("Epoch: {}, loss: {}".format(epoch, total_loss / total_tokens))
     return total_loss / total_tokens
 
 
 def train(train_data, dev_data, model, criterion, optimizer):
     """训练并保存模型"""
     # 初始化模型在dev集上的最优Loss为一个较大值
-    best_dev_loss = 1e5
-    for epoch in range(config.epoch_num):
+    best_bleu_score = 0.0
+    for epoch in range(1, config.epoch_num + 1):
         # 模型训练
         model.train()
-        run_epoch(train_data, model, SimpleLossCompute(model.generator, criterion, optimizer), epoch)
-        # 在dev集上进行loss评估
+        train_loss = run_epoch(train_data, model, LossCompute(model.generator, criterion, optimizer))
+        logging.info("Epoch: {}, loss: {}".format(epoch, train_loss))
+        # 模型验证
         model.eval()
-        dev_loss = run_epoch(dev_data, model, SimpleLossCompute(model.generator, criterion, None), epoch)
-        logging.info('Evaluate loss: {}'.format(dev_loss))
+        dev_loss = run_epoch(dev_data, model, LossCompute(model.generator, criterion, None))
+        bleu_score = evaluate(dev_data, model)
+        logging.info('Epoch: {}, Dev loss: {}, Bleu Score: {}'.format(epoch, dev_loss, bleu_score))
 
         # 如果当前epoch的模型在dev集上的loss优于之前记录的最优loss则保存当前模型，并更新最优loss值
-        if dev_loss < best_dev_loss:
+        if bleu_score > best_bleu_score:
             torch.save(model.state_dict(), config.model_path)
-            best_dev_loss = dev_loss
+            best_bleu_score = bleu_score
             logging.info("-------- Save Best Model! --------")
 
 
+class LossCompute:
+    """简单的计算损失和进行参数反向传播更新训练的函数"""
+    def __init__(self, generator, criterion, opt=None):
+        self.generator = generator
+        self.criterion = criterion
+        self.opt = opt
+
+    def __call__(self, x, y, norm):
+        x = self.generator(x)
+        loss = self.criterion(x.contiguous().view(-1, x.size(-1)),
+                              y.contiguous().view(-1)) / norm
+        loss.backward()
+        if self.opt is not None:
+            self.opt.step()
+            self.opt.zero_grad()
+        return loss.data.item() * norm.float()
+
+
 def evaluate(data, model):
-    """
-    在data上用训练好的模型进行预测，打印模型翻译结果
-    """
-    # 梯度清零
+    """在data上用训练好的模型进行预测，打印模型翻译结果"""
+    sp_chn = chinese_tokenizer_load()
+    trg = []
+    res = []
     with torch.no_grad():
         # 在data的英文数据长度上遍历下标
-        for i in range(len(data.dev_en)):
-            # TODO: 打印待翻译的英文句子
-            en_sent = " ".join([data.en_index_dict[w] for w in data.dev_en[i]])
-            print("\n" + en_sent)
-
-            # TODO: 打印对应的中文句子答案
-            cn_sent = " ".join([data.cn_index_dict[w] for w in data.dev_cn[i]])
-            print("".join(cn_sent))
-
-            # 将当前以单词id表示的英文句子数据转为tensor，并放如DEVICE中
-            src = torch.from_numpy(np.array(data.dev_en[i])).long().to(DEVICE)
-            # 增加一维
-            src = src.unsqueeze(0)
-            # 设置attention mask
-            src_mask = (src != 0).unsqueeze(-2)
-            # 用训练好的模型进行decode预测
-            out = greedy_decode(model, src, src_mask, max_len=MAX_LENGTH, start_symbol=data.cn_word_dict["BOS"])
-            # 初始化一个用于存放模型翻译结果句子单词的列表
-            translation = []
-            # 遍历翻译输出字符的下标（注意：开始符"BOS"的索引0不遍历）
-            for j in range(1, out.size(1)):
-                # 获取当前下标的输出字符
-                sym = data.cn_index_dict[out[0, j].item()]
-                # 如果输出字符不为'EOS'终止符，则添加到当前句子的翻译结果列表
-                if sym != 'EOS':
-                    translation.append(sym)
-                # 否则终止遍历
-                else:
-                    break
+        for batch in tqdm(data):
+            # 待翻译的英文句子
+            en_sent = batch.src_text
+            # 对应的中文句子
+            cn_sent = batch.trg_text
             # 打印模型翻译输出的中文句子结果
-            print("translation: %s" % " ".join(translation))
+            for i in range(len(en_sent)):
+                src = batch.src[i]
+                # 增加一维
+                src = src.unsqueeze(0)
+                # 设置attention mask
+                src_mask = (src != 0).unsqueeze(-2)
+                # 用训练好的模型进行decode预测
+                decode_result = greedy_decode(model, src, src_mask,
+                                              max_len=config.max_len).squeeze().tolist()
+                # 模型翻译结果解码
+                translation = sp_chn.decode_ids(decode_result)
+                trg.append(cn_sent[i])
+                res.append(translation)
+                if i == 3:
+                    break
+    res = [res]
+    bleu = sacrebleu.corpus_bleu(trg, res)
+    return float(bleu.score)
 
+
+def test(data, model, criterion):
+    with torch.no_grad():
+        # 加载模型
+        model.load_state_dict(torch.load(config.model_path))
+        # 开始预测
+        bleu_score = evaluate(data, model)
+        test_loss = run_epoch(data, model, LossCompute(model.generator, criterion, None))
+        logging.info('Test loss: {}, Bleu Score: {}'.format(test_loss, bleu_score))
