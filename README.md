@@ -16,4 +16,5 @@ Homework2 of Computational Linguistics -- NMT(en-ch)
 
 ## TODO
 
-evaluate部分，BLUE
+- greedy_decode的batch实现。
+- 超参数调整：学习率等等。
