@@ -34,7 +34,7 @@ def run():
     # 训练
     criterion = torch.nn.CrossEntropyLoss(ignore_index=0, reduction='sum')
     optimizer = torch.optim.AdamW(model.parameters(), lr=config.lr)
-    train(train_dataloader, dev_dataloader, model, criterion, optimizer)
+    # train(train_dataloader, dev_dataloader, model, criterion, optimizer)
     test(test_dataloader, model, criterion)
 
 

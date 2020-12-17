@@ -26,7 +26,7 @@ test_data_path = './data/test.json'
 model_path = './experiment/model.pth'
 log_path = './experiment/train.log'
 
-gpu = '0'
+gpu = '3'
 
 # set device
 if gpu != '':

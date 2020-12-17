@@ -6,6 +6,7 @@ from tqdm import tqdm
 
 import config
 from model import greedy_decode
+from model import batch_greedy_decode
 from utils import chinese_tokenizer_load
 
 
@@ -74,22 +75,29 @@ def evaluate(data, model):
             en_sent = batch.src_text
             # 对应的中文句子
             cn_sent = batch.trg_text
+            src = batch.src
+            src_mask = (src != 0).unsqueeze(-2)
+            decode_result = batch_greedy_decode(model, src, src_mask,
+                                               max_len=config.max_len)
+            translation = [sp_chn.decode_ids(_s) for _s in decode_result]
+            trg.extend(cn_sent)
+            res.extend(translation)
             # 打印模型翻译输出的中文句子结果
-            for i in range(len(en_sent)):
-                src = batch.src[i]
-                # 增加一维
-                src = src.unsqueeze(0)
-                # 设置attention mask
-                src_mask = (src != 0).unsqueeze(-2)
-                # 用训练好的模型进行decode预测
-                decode_result = greedy_decode(model, src, src_mask,
-                                              max_len=config.max_len).squeeze().tolist()
-                # 模型翻译结果解码
-                translation = sp_chn.decode_ids(decode_result)
-                trg.append(cn_sent[i])
-                res.append(translation)
-                if i == 3:
-                    break
+            # for i in range(len(en_sent)):
+            #     src = batch.src[i]
+            #     # 增加一维
+            #     src = src.unsqueeze(0)
+            #     # 设置attention mask
+            #     src_mask = (src != 0).unsqueeze(-2)
+            #     # 用训练好的模型进行decode预测
+            #     decode_result = greedy_decode(model, src, src_mask,
+            #                                   max_len=config.max_len).squeeze().tolist()
+            #     # 模型翻译结果解码
+            #     translation = sp_chn.decode_ids(decode_result)
+            #     trg.append(cn_sent[i])
+            #     res.append(translation)
+            #     if i == 3:
+            #         break
     res = [res]
     bleu = sacrebleu.corpus_bleu(trg, res)
     return float(bleu.score)
