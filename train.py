@@ -36,7 +36,7 @@ def train(train_data, dev_data, model, criterion, optimizer):
         model.eval()
         dev_loss = run_epoch(dev_data, model, LossCompute(model.generator, criterion, None))
         bleu_score = evaluate(dev_data, model)
-        logging.info('Epoch: {}, Dev loss: {}, Bleu Score: {}'.format(epoch, dev_loss, bleu_score))
+        logging.info('Epoch: {}, oDev loss: {}, Bleu Score: {}'.format(epoch, dev_loss, bleu_score))
 
         # 如果当前epoch的模型在dev集上的loss优于之前记录的最优loss则保存当前模型，并更新最优loss值
         if bleu_score > best_bleu_score:
@@ -59,7 +59,8 @@ class LossCompute:
         loss.backward()
         if self.opt is not None:
             self.opt.step()
-            self.opt.zero_grad()
+            #self.opt.zero_grad()
+            self.opt.optimizer.zero_grad()
         return loss.data.item() * norm.float()
 
 
@@ -82,6 +83,7 @@ def evaluate(data, model):
             translation = [sp_chn.decode_ids(_s) for _s in decode_result]
             trg.extend(cn_sent)
             res.extend(translation)
+            # print(cn_sent[0], translation[0])
             # 打印模型翻译输出的中文句子结果
             # for i in range(len(en_sent)):
             #     src = batch.src[i]
@@ -107,7 +109,9 @@ def test(data, model, criterion):
     with torch.no_grad():
         # 加载模型
         model.load_state_dict(torch.load(config.model_path))
+        model.eval()
         # 开始预测
         bleu_score = evaluate(data, model)
-        test_loss = run_epoch(data, model, LossCompute(model.generator, criterion, None))
+        # test_loss = run_epoch(data, model, LossCompute(model.generator, criterion, None))
+        test_loss = "None"
         logging.info('Test loss: {}, Bleu Score: {}'.format(test_loss, bleu_score))
