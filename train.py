@@ -64,7 +64,7 @@ class LossCompute:
         return loss.data.item() * norm.float()
 
 
-def evaluate(data, model):
+def evaluate(data, model, mode='dev'):
     """在data上用训练好的模型进行预测，打印模型翻译结果"""
     sp_chn = chinese_tokenizer_load()
     trg = []
@@ -100,6 +100,11 @@ def evaluate(data, model):
             #     res.append(translation)
             #     if i == 3:
             #         break
+    if mode is 'test':
+        with open(config.output_path,"w") as fp:
+            for i in range(len(trg)):
+                line = "idx:" + str(i) + trg[i] + '|||' + res[i] + '\n'
+                fp.write(line)
     res = [res]
     bleu = sacrebleu.corpus_bleu(trg, res)
     return float(bleu.score)
@@ -111,7 +116,7 @@ def test(data, model, criterion):
         model.load_state_dict(torch.load(config.model_path))
         model.eval()
         # 开始预测
-        bleu_score = evaluate(data, model)
+        bleu_score = evaluate(data, model, 'test')
         # test_loss = run_epoch(data, model, LossCompute(model.generator, criterion, None))
         test_loss = "None"
         logging.info('Test loss: {}, Bleu Score: {}'.format(test_loss, bleu_score))

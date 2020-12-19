@@ -53,7 +53,7 @@ def run():
                                   collate_fn=train_dataset.collate_fn)
     dev_dataloader = DataLoader(dev_dataset, shuffle=False, batch_size=config.batch_size,
                                 collate_fn=dev_dataset.collate_fn)
-    test_dataloader = DataLoader(test_dataset, shuffle=True, batch_size=config.batch_size,
+    test_dataloader = DataLoader(test_dataset, shuffle=False, batch_size=config.batch_size,
                                  collate_fn=test_dataset.collate_fn)
 
     logging.info("-------- Get Dataloader! --------")

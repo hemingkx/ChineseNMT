@@ -25,6 +25,7 @@ dev_data_path = './data/dev.json'
 test_data_path = './data/test.json'
 model_path = './experiment/model.pth'
 log_path = './experiment/train.log'
+output_path = './experiment/output.txt'
 
 gpu = '3'
 
