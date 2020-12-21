@@ -47,11 +47,12 @@ Before：
 
 After：
 
-| Model | NoamOpt  | LabelSmoothing | Best Dev Bleu | Test Bleu |
-| :---: | :------: | :------------: | :-----------: | :-------: |
-|   1   | $\times$ |    $\times$    |     3.57      |           |
-|       |          |                |               |           |
-|       |          |                |               |           |
+| Model | NoamOpt | LabelSmoothing | Best Dev Bleu | Test Bleu |
+| :---: | :-----: | :------------: | :-----------: | :-------: |
+|   1   |   No    |       No       |     9.63      |           |
+|   2   |   Yes   |       No       |               |           |
+|   3   |   No    |      Yes       |               |           |
+|   4   |   Yes   |      Yes       |               |           |
 
 
 
