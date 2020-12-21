@@ -11,7 +11,7 @@ from model import make_model
 
 
 class NoamOpt:
-    "Optim wrapper that implements rate."
+    """Optim wrapper that implements rate."""
 
     def __init__(self, model_size, factor, warmup, optimizer):
         self.optimizer = optimizer
@@ -22,7 +22,7 @@ class NoamOpt:
         self._rate = 0
 
     def step(self):
-        "Update parameters and rate"
+        """Update parameters and rate"""
         self._step += 1
         rate = self.rate()
         for p in self.optimizer.param_groups:
@@ -31,7 +31,7 @@ class NoamOpt:
         self.optimizer.step()
 
     def rate(self, step=None):
-        "Implement `lrate` above"
+        """Implement `lrate` above"""
         if step is None:
             step = self._step
         return self.factor * (self.model_size ** (-0.5) * min(step ** (-0.5), step * self.warmup ** (-1.5)))
@@ -40,6 +40,7 @@ class NoamOpt:
 def get_std_opt(model):
     return NoamOpt(model.src_embed[0].d_model, 2, 4000,
                    torch.optim.Adam(model.parameters(), lr=0, betas=(0.9, 0.98), eps=1e-9))
+
 
 def run():
     utils.set_logger(config.log_path)
@@ -57,18 +58,20 @@ def run():
                                  collate_fn=test_dataset.collate_fn)
 
     logging.info("-------- Get Dataloader! --------")
-
     # 初始化模型
     model = make_model(config.src_vocab_size, config.tgt_vocab_size, config.n_layers,
                        config.d_model, config.d_ff, config.n_heads, config.dropout)
-
+    model_par = torch.nn.DataParallel(model)
     # 训练
     criterion = torch.nn.CrossEntropyLoss(ignore_index=0, reduction='sum')
-    #optimizer = torch.optim.AdamW(model.parameters(), lr=config.lr)
-    optimizer = get_std_opt(model)
-    train(train_dataloader, dev_dataloader, model, criterion, optimizer)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=config.lr)
+    train(train_dataloader, dev_dataloader, model, model_par, criterion, optimizer)
     test(test_dataloader, model, criterion)
 
 
 if __name__ == "__main__":
+    import os
+    os.environ['CUDA_VISIBLE_DEVICES'] = '0, 1, 2, 3'
+    import warnings
+    warnings.filterwarnings('ignore')
     run()

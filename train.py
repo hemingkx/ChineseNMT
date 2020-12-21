@@ -1,11 +1,12 @@
 import torch
+import torch.nn as nn
+from torch.autograd import Variable
 
 import logging
 import sacrebleu
 from tqdm import tqdm
 
 import config
-from model import greedy_decode
 from model import batch_greedy_decode
 from utils import chinese_tokenizer_load
 
@@ -23,30 +24,40 @@ def run_epoch(data, model, loss_compute):
     return total_loss / total_tokens
 
 
-def train(train_data, dev_data, model, criterion, optimizer):
+def train(train_data, dev_data, model, model_par, criterion, optimizer):
     """训练并保存模型"""
     # 初始化模型在dev集上的最优Loss为一个较大值
     best_bleu_score = 0.0
+    early_stop = config.early_stop
     for epoch in range(1, config.epoch_num + 1):
         # 模型训练
         model.train()
-        train_loss = run_epoch(train_data, model, LossCompute(model.generator, criterion, optimizer))
+        train_loss = run_epoch(train_data, model_par,
+                               MultiGPULossCompute(model.generator, criterion, config.device_id, optimizer))
         logging.info("Epoch: {}, loss: {}".format(epoch, train_loss))
         # 模型验证
         model.eval()
-        dev_loss = run_epoch(dev_data, model, LossCompute(model.generator, criterion, None))
+        dev_loss = run_epoch(dev_data, model_par,
+                             MultiGPULossCompute(model.generator, criterion, config.device_id, None))
         bleu_score = evaluate(dev_data, model)
-        logging.info('Epoch: {}, oDev loss: {}, Bleu Score: {}'.format(epoch, dev_loss, bleu_score))
+        logging.info('Epoch: {}, Dev loss: {}, Bleu Score: {}'.format(epoch, dev_loss, bleu_score))
 
         # 如果当前epoch的模型在dev集上的loss优于之前记录的最优loss则保存当前模型，并更新最优loss值
         if bleu_score > best_bleu_score:
             torch.save(model.state_dict(), config.model_path)
             best_bleu_score = bleu_score
             logging.info("-------- Save Best Model! --------")
+        else:
+            early_stop -= 1
+            logging.info("Early Stop Left: {}".format(early_stop))
+        if early_stop == 0:
+            logging.info("-------- Early Stop! --------")
+            break
 
 
 class LossCompute:
     """简单的计算损失和进行参数反向传播更新训练的函数"""
+
     def __init__(self, generator, criterion, opt=None):
         self.generator = generator
         self.criterion = criterion
@@ -59,9 +70,64 @@ class LossCompute:
         loss.backward()
         if self.opt is not None:
             self.opt.step()
-            #self.opt.zero_grad()
-            self.opt.optimizer.zero_grad()
+            self.opt.zero_grad()
         return loss.data.item() * norm.float()
+
+
+class MultiGPULossCompute:
+    """A multi-gpu loss compute and train function."""
+
+    def __init__(self, generator, criterion, devices, opt=None, chunk_size=5):
+        # Send out to different gpus.
+        self.generator = generator
+        self.criterion = nn.parallel.replicate(criterion, devices=devices)
+        self.opt = opt
+        self.devices = devices
+        self.chunk_size = chunk_size
+
+    def __call__(self, out, targets, normalize):
+        total = 0.0
+        generator = nn.parallel.replicate(self.generator, devices=self.devices)
+        out_scatter = nn.parallel.scatter(out, target_gpus=self.devices)
+        out_grad = [[] for _ in out_scatter]
+        targets = nn.parallel.scatter(targets, target_gpus=self.devices)
+
+        # Divide generating into chunks.
+        chunk_size = self.chunk_size
+        for i in range(0, out_scatter[0].size(1), chunk_size):
+            # Predict distributions
+            out_column = [[Variable(o[:, i:i + chunk_size].data,
+                                    requires_grad=self.opt is not None)]
+                          for o in out_scatter]
+            gen = nn.parallel.parallel_apply(generator, out_column)
+
+            # Compute loss.
+            y = [(g.contiguous().view(-1, g.size(-1)),
+                  t[:, i:i + chunk_size].contiguous().view(-1))
+                 for g, t in zip(gen, targets)]
+            loss = nn.parallel.parallel_apply(self.criterion, y)
+
+            # Sum and normalize loss
+            l_ = nn.parallel.gather(loss, target_device=self.devices[0])
+            l_ = l_.sum() / normalize
+            total += l_.data
+
+            # Backprop loss to output of transformer
+            if self.opt is not None:
+                l_.backward()
+                for j, l in enumerate(loss):
+                    out_grad[j].append(out_column[j][0].grad.data.clone())
+
+        # Backprop all loss through transformer.
+        if self.opt is not None:
+            out_grad = [Variable(torch.cat(og, dim=1)) for og in out_grad]
+            o1 = out
+            o2 = nn.parallel.gather(out_grad,
+                                    target_device=self.devices[0])
+            o1.backward(gradient=o2)
+            self.opt.step()
+            self.opt.zero_grad()
+        return total * normalize
 
 
 def evaluate(data, model, mode='dev'):
@@ -72,41 +138,22 @@ def evaluate(data, model, mode='dev'):
     with torch.no_grad():
         # 在data的英文数据长度上遍历下标
         for batch in tqdm(data):
-            # 待翻译的英文句子
-            en_sent = batch.src_text
             # 对应的中文句子
             cn_sent = batch.trg_text
             src = batch.src
             src_mask = (src != 0).unsqueeze(-2)
             decode_result = batch_greedy_decode(model, src, src_mask,
-                                               max_len=config.max_len)
+                                                max_len=config.max_len)
             translation = [sp_chn.decode_ids(_s) for _s in decode_result]
             trg.extend(cn_sent)
             res.extend(translation)
-            # print(cn_sent[0], translation[0])
-            # 打印模型翻译输出的中文句子结果
-            # for i in range(len(en_sent)):
-            #     src = batch.src[i]
-            #     # 增加一维
-            #     src = src.unsqueeze(0)
-            #     # 设置attention mask
-            #     src_mask = (src != 0).unsqueeze(-2)
-            #     # 用训练好的模型进行decode预测
-            #     decode_result = greedy_decode(model, src, src_mask,
-            #                                   max_len=config.max_len).squeeze().tolist()
-            #     # 模型翻译结果解码
-            #     translation = sp_chn.decode_ids(decode_result)
-            #     trg.append(cn_sent[i])
-            #     res.append(translation)
-            #     if i == 3:
-            #         break
-    if mode is 'test':
-        with open(config.output_path,"w") as fp:
+    if mode == 'test':
+        with open(config.output_path, "w") as fp:
             for i in range(len(trg)):
                 line = "idx:" + str(i) + trg[i] + '|||' + res[i] + '\n'
                 fp.write(line)
     res = [res]
-    bleu = sacrebleu.corpus_bleu(trg, res)
+    bleu = sacrebleu.corpus_bleu(trg, res, tokenize='zh')
     return float(bleu.score)
 
 
@@ -116,7 +163,6 @@ def test(data, model, criterion):
         model.load_state_dict(torch.load(config.model_path))
         model.eval()
         # 开始预测
+        test_loss = run_epoch(data, model, LossCompute(model.generator, criterion, None))
         bleu_score = evaluate(data, model, 'test')
-        # test_loss = run_epoch(data, model, LossCompute(model.generator, criterion, None))
-        test_loss = "None"
-        logging.info('Test loss: {}, Bleu Score: {}'.format(test_loss, bleu_score))
+        logging.info('Test loss: {},  Bleu Score: {}'.format(test_loss, bleu_score))

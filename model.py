@@ -333,6 +333,7 @@ def batch_greedy_decode(model, src, src_mask, max_len=64, start_symbol=2, end_sy
 
     return results
 
+
 def greedy_decode(model, src, src_mask, max_len=64, start_symbol=2, end_symbol=3):
     """传入一个训练好的模型，对指定数据进行预测"""
     # 先用encoder进行encode

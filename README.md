@@ -2,7 +2,7 @@
 
 Homework2 of Computational Linguistics -- NMT(en-ch)
 
-## 数据处理
+## Data Process
 
 ### 分词
 
@@ -10,13 +10,21 @@ Homework2 of Computational Linguistics -- NMT(en-ch)
 - 预处理：`./data/get_corpus.py`抽取train、dev和test中双语语料，分别保存到`corpus.en`和`corpus.ch`中，每行一个句子。
 - 训练分词模型：`./tokenizer/tokenize.py`中调用了sentencepiece.SentencePieceTrainer.Train()方法，利用`corpus.en`和`corpus.ch`中的语料训练分词模型，训练完成后会在`./tokenizer`文件夹下生成`chn.model`，`chn.vocab`，`eng.model`和`eng.vocab`，其中`.model`和`.vocab`分别为模型文件和对应的词表。
 
-## 模型
+## Model
 
 采用harvard开源的 [transformer-pytorch](http://nlp.seas.harvard.edu/2018/04/03/attention.html) ，中文说明可参考 [传送门](https://zhuanlan.zhihu.com/p/144825330) 。
 
-## 训练结果
+# Usage
 
-1. 使用包装后的Adam优化器NoamOpt，sacrebleu计算bleu，测试集bleu：**0.77**
+模型参数在`config.py`中设置。
+
+- 由于transformer显存要求，支持MultiGPU，需要设置`config.py`中的`device_id`列表以及`main.py`中的`os.environ['CUDA_VISIBLE_DEVICES']`。
+
+## Results
+
+Before：
+
+1. 使用包装后的Adam优化器NoamOpt，测试集bleu：**0.77**
 
 2. 测试结果（idx:序号 gold translation ||| prediction）
 
@@ -37,11 +45,17 @@ Homework2 of Computational Linguistics -- NMT(en-ch)
    ......
    ```
 
-## 存在的问题
+After：
 
-1. 测试集和验证集的Bleu值过低，都不过1（别组同学反映正常情况下验证集会到7，测试集会到20+），可能是epoch不够（但从log看，Bleu值上升空间不大）；也可能是transformer的超参设置的问题，但修改参数后会出现`2.`的问题。
-2. transformer参数调整（e.g. `d_model`，`n_head`加倍到常规值），训练时会报显卡out of memory错误
+| Model | NoamOpt  | LabelSmoothing | Best Dev Bleu | Test Bleu |
+| :---: | :------: | :------------: | :-----------: | :-------: |
+|   1   | $\times$ |    $\times$    |     3.57      |           |
+|       |          |                |               |           |
+|       |          |                |               |           |
+
+
 
 ## TODO
 
-- 超参数调整：Transformer超参数、学习率、warmup步数等等。
+- 尝试改进模型
+- 测试：optimizer, LabelSmoothing等对结果的提升效果。
