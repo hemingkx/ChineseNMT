@@ -49,7 +49,7 @@ After：
 
 | Model | NoamOpt | LabelSmoothing | Best Dev Bleu | Test Bleu |
 | :---: | :-----: | :------------: | :-----------: | :-------: |
-|   1   |   No    |       No       |     9.63      |           |
+|   1   |   No    |       No       |     22.78     |   22.65   |
 |   2   |   Yes   |       No       |               |           |
 |   3   |   No    |      Yes       |               |           |
 |   4   |   Yes   |      Yes       |               |           |
