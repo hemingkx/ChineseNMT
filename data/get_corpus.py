@@ -8,7 +8,7 @@ if __name__ == "__main__":
     en_lines = []
 
     for file in files:
-        corpus = json.load(open(file + '.json', 'r'))
+        corpus = json.load(open('./json/' + file + '.json', 'r'))
         for item in corpus:
             ch_lines.append(item[1] + '\n')
             en_lines.append(item[0] + '\n')

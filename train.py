@@ -46,6 +46,7 @@ def train(train_data, dev_data, model, model_par, criterion, optimizer):
         if bleu_score > best_bleu_score:
             torch.save(model.state_dict(), config.model_path)
             best_bleu_score = bleu_score
+            early_stop = config.early_stop
             logging.info("-------- Save Best Model! --------")
         else:
             early_stop -= 1
@@ -161,8 +162,10 @@ def test(data, model, criterion):
     with torch.no_grad():
         # 加载模型
         model.load_state_dict(torch.load(config.model_path))
+        model_par = torch.nn.DataParallel(model)
         model.eval()
         # 开始预测
-        test_loss = run_epoch(data, model, LossCompute(model.generator, criterion, None))
+        test_loss = run_epoch(data, model_par,
+                              MultiGPULossCompute(model.generator, criterion, config.device_id, None))
         bleu_score = evaluate(data, model, 'test')
         logging.info('Test loss: {},  Bleu Score: {}'.format(test_loss, bleu_score))
