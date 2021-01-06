@@ -71,7 +71,7 @@ class LossCompute:
         loss.backward()
         if self.opt is not None:
             self.opt.step()
-            self.opt.zero_grad()
+            self.opt.optimizer.zero_grad()
         return loss.data.item() * norm.float()
 
 
@@ -127,7 +127,7 @@ class MultiGPULossCompute:
                                     target_device=self.devices[0])
             o1.backward(gradient=o2)
             self.opt.step()
-            self.opt.zero_grad()
+            self.opt.optimizer.zero_grad()
         return total * normalize
 
 

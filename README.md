@@ -24,8 +24,8 @@ Homework2 of Computational Linguistics -- NMT(en-ch)
 
 | Model | NoamOpt | LabelSmoothing | Best Dev Bleu | Test Bleu |
 | :---: | :-----: | :------------: | :-----------: | :-------: |
-|   1   |   No    |       No       |   **24.07**   | **24.03** |
-|   2   |   Yes   |       No       |               |           |
+|   1   |   No    |       No       |     24.07     | **24.03** |
+|   2   |   Yes   |       No       |   **25.42**   |           |
 |   3   |   No    |      Yes       |               |           |
 |   4   |   Yes   |      Yes       |               |           |
 

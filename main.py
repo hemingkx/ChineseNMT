@@ -38,7 +38,8 @@ class NoamOpt:
 
 
 def get_std_opt(model):
-    return NoamOpt(model.src_embed[0].d_model, 2, 4000,
+    """for batch_size 32, 5530 steps for one epoch, 2 epoch for warm-up"""
+    return NoamOpt(model.src_embed[0].d_model, 1, 10000,
                    torch.optim.Adam(model.parameters(), lr=0, betas=(0.9, 0.98), eps=1e-9))
 
 
@@ -64,14 +65,31 @@ def run():
     model_par = torch.nn.DataParallel(model)
     # 训练
     criterion = torch.nn.CrossEntropyLoss(ignore_index=0, reduction='sum')
-    optimizer = torch.optim.AdamW(model.parameters(), lr=config.lr)
+    # optimizer = torch.optim.AdamW(model.parameters(), lr=config.lr)
+    optimizer = get_std_opt(model)
     train(train_dataloader, dev_dataloader, model, model_par, criterion, optimizer)
     test(test_dataloader, model, criterion)
 
 
+def check_opt():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    model = make_model(config.src_vocab_size, config.tgt_vocab_size, config.n_layers,
+                       config.d_model, config.d_ff, config.n_heads, config.dropout)
+    opt = get_std_opt(model)
+    # Three settings of the lrate hyperparameters.
+    opts = [opt,
+            NoamOpt(512, 1, 20000, None),
+            NoamOpt(256, 1, 10000, None)]
+    plt.plot(np.arange(1, 50000), [[opt.rate(i) for opt in opts] for i in range(1, 50000)])
+    plt.legend(["opt", "512:20000", "256:10000"])
+    plt.show()
+
+
 if __name__ == "__main__":
     import os
-    os.environ['CUDA_VISIBLE_DEVICES'] = '0, 1, 2, 3'
+    # os.environ['CUDA_VISIBLE_DEVICES'] = '2, 3'
     import warnings
     warnings.filterwarnings('ignore')
-    run()
+    # run()
+    check_opt()
