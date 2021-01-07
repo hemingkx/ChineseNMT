@@ -25,7 +25,7 @@ Homework2 of Computational Linguistics -- NMT(en-ch)
 | Model | NoamOpt | LabelSmoothing | Best Dev Bleu | Test Bleu |
 | :---: | :-----: | :------------: | :-----------: | :-------: |
 |   1   |   No    |       No       |     24.07     | **24.03** |
-|   2   |   Yes   |       No       |   **25.42**   |           |
+|   2   |   Yes   |       No       |   **25.86**   |           |
 |   3   |   No    |      Yes       |               |           |
 |   4   |   Yes   |      Yes       |               |           |
 
@@ -33,5 +33,5 @@ Homework2 of Computational Linguistics -- NMT(en-ch)
 
 ## TODO
 
-- 尝试改进模型
-- 测试：optimizer, LabelSmoothing等对结果的提升效果。
+- Beam Search
+- Beyond LabalSmoothing
