@@ -31,7 +31,16 @@ Homework2 of Computational Linguistics -- NMT(en-ch)
 
 实验结果在`./experiment/train.log`文件中，测试集翻译结果在`./experiment/output.txt`中。
 
+### With Beam Search
+
+使用了上述模型2，训练24个epoch后的结果
+
+| Beam_size | Test Bleu |
+| --------- | --------- |
+| 3         | 26.60     |
+| 5         | 26.69     |
+
 ## TODO
 
-- Beam Search
 - Beyond LabelSmoothing: https://arxiv.org/pdf/2012.04987.pdf
+

@@ -17,6 +17,7 @@ lr = 3e-4
 
 # greed decode的最大句子长度
 max_len = 60
+beam_size = 5
 
 data_dir = './data'
 train_data_path = './data/json/train.json'

@@ -9,6 +9,7 @@ from tqdm import tqdm
 import config
 from model import batch_greedy_decode
 from utils import chinese_tokenizer_load
+from beam_decoder import beam_search
 
 
 def run_epoch(data, model, loss_compute):
@@ -143,8 +144,12 @@ def evaluate(data, model, mode='dev'):
             cn_sent = batch.trg_text
             src = batch.src
             src_mask = (src != 0).unsqueeze(-2)
-            decode_result = batch_greedy_decode(model, src, src_mask,
-                                                max_len=config.max_len)
+            # decode_result = batch_greedy_decode(model, src, src_mask,
+            #                                     max_len=config.max_len)
+            # PAD:0 BOS:2 EOS:3
+            decode_result, _ = beam_search(model, src, src_mask, config.max_len,
+                                           0,2,3,config.beam_size, config.device)
+            decode_result = [h[0] for h in decode_result]
             translation = [sp_chn.decode_ids(_s) for _s in decode_result]
             trg.extend(cn_sent)
             res.extend(translation)
@@ -165,7 +170,9 @@ def test(data, model, criterion):
         model_par = torch.nn.DataParallel(model)
         model.eval()
         # 开始预测
-        test_loss = run_epoch(data, model_par,
-                              MultiGPULossCompute(model.generator, criterion, config.device_id, None))
+        # test_loss = run_epoch(data, model_par,
+        #                       MultiGPULossCompute(model.generator, criterion, config.device_id, None))
+        test_loss = "None"
         bleu_score = evaluate(data, model, 'test')
-        logging.info('Test loss: {},  Bleu Score: {}'.format(test_loss, bleu_score))
+        print('Test Bleu Score: {}'.format(bleu_score))
+        # logging.info('Test loss: {},  Bleu Score: {}'.format(test_loss, bleu_score))
