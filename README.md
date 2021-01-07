@@ -34,4 +34,4 @@ Homework2 of Computational Linguistics -- NMT(en-ch)
 ## TODO
 
 - Beam Search
-- Beyond LabalSmoothing
+- Beyond LabelSmoothing: https://arxiv.org/pdf/2012.04987.pdf
