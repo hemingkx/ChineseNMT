@@ -14,7 +14,7 @@ Homework2 of Computational Linguistics -- NMT(en-ch)
 
 采用harvard开源的 [transformer-pytorch](http://nlp.seas.harvard.edu/2018/04/03/attention.html) ，中文说明可参考 [传送门](https://zhuanlan.zhihu.com/p/144825330) 。
 
-# Usage
+## Usage
 
 模型参数在`config.py`中设置。
 
@@ -24,14 +24,20 @@ Homework2 of Computational Linguistics -- NMT(en-ch)
 
 | Model | NoamOpt | LabelSmoothing | Best Dev Bleu | Test Bleu |
 | :---: | :-----: | :------------: | :-----------: | :-------: |
-|   1   |   No    |       No       |     24.07     | **24.03** |
-|   2   |   Yes   |       No       |   **25.86**   |           |
-|   3   |   No    |      Yes       |               |           |
+|   1   |   No    |       No       |     24.07     |   24.03   |
+|   2   |   Yes   |       No       |   **26.08**   | **25.94** |
+|   3   |   No    |      Yes       |     23.92     |   23.84   |
 |   4   |   Yes   |      Yes       |               |           |
 
 实验结果在`./experiment/train.log`文件中，测试集翻译结果在`./experiment/output.txt`中。
 
-### With Beam Search
+## Model
+
+Model 2 （当前最优模型）可以在如下链接下载：
+
+链接: https://pan.baidu.com/s/1cjZglVAgpVSwTo5TlhSwzQ  密码: ifj2
+
+## With Beam Search
 
 使用了上述模型2，训练24个epoch后的结果
 
