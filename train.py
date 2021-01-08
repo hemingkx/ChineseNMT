@@ -7,9 +7,9 @@ import sacrebleu
 from tqdm import tqdm
 
 import config
+from beam_decoder import beam_search
 from model import batch_greedy_decode
 from utils import chinese_tokenizer_load
-from beam_decoder import beam_search
 
 
 def run_epoch(data, model, loss_compute):
@@ -72,7 +72,10 @@ class LossCompute:
         loss.backward()
         if self.opt is not None:
             self.opt.step()
-            self.opt.optimizer.zero_grad()
+            if config.use_noamopt:
+                self.opt.optimizer.zero_grad()
+            else:
+                self.opt.zero_grad()
         return loss.data.item() * norm.float()
 
 
@@ -128,11 +131,14 @@ class MultiGPULossCompute:
                                     target_device=self.devices[0])
             o1.backward(gradient=o2)
             self.opt.step()
-            self.opt.optimizer.zero_grad()
+            if config.use_noamopt:
+                self.opt.optimizer.zero_grad()
+            else:
+                self.opt.zero_grad()
         return total * normalize
 
 
-def evaluate(data, model, mode='dev'):
+def evaluate(data, model, mode='dev', use_beam=True):
     """在data上用训练好的模型进行预测，打印模型翻译结果"""
     sp_chn = chinese_tokenizer_load()
     trg = []
@@ -144,11 +150,13 @@ def evaluate(data, model, mode='dev'):
             cn_sent = batch.trg_text
             src = batch.src
             src_mask = (src != 0).unsqueeze(-2)
-            # decode_result = batch_greedy_decode(model, src, src_mask,
-            #                                     max_len=config.max_len)
-            # PAD:0 BOS:2 EOS:3
-            decode_result, _ = beam_search(model, src, src_mask, config.max_len,
-                                           0,2,3,config.beam_size, config.device)
+            if use_beam:
+                decode_result, _ = beam_search(model, src, src_mask, config.max_len,
+                                               config.padding_idx, config.bos_idx, config.eos_idx,
+                                               config.beam_size, config.device)
+            else:
+                decode_result = batch_greedy_decode(model, src, src_mask,
+                                                    max_len=config.max_len)
             decode_result = [h[0] for h in decode_result]
             translation = [sp_chn.decode_ids(_s) for _s in decode_result]
             trg.extend(cn_sent)
@@ -170,9 +178,7 @@ def test(data, model, criterion):
         model_par = torch.nn.DataParallel(model)
         model.eval()
         # 开始预测
-        # test_loss = run_epoch(data, model_par,
-        #                       MultiGPULossCompute(model.generator, criterion, config.device_id, None))
-        test_loss = "None"
+        test_loss = run_epoch(data, model_par,
+                              MultiGPULossCompute(model.generator, criterion, config.device_id, None))
         bleu_score = evaluate(data, model, 'test')
-        print('Test Bleu Score: {}'.format(bleu_score))
-        # logging.info('Test loss: {},  Bleu Score: {}'.format(test_loss, bleu_score))
+        logging.info('Test loss: {},  Bleu Score: {}'.format(test_loss, bleu_score))

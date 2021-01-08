@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 
 from train import train, test
 from data_loader import MTDataset
-from model import make_model
+from model import make_model, LabelSmoothing
 
 
 class NoamOpt:
@@ -64,10 +64,16 @@ def run():
                        config.d_model, config.d_ff, config.n_heads, config.dropout)
     model_par = torch.nn.DataParallel(model)
     # 训练
-    criterion = torch.nn.CrossEntropyLoss(ignore_index=0, reduction='sum')
-    # optimizer = torch.optim.AdamW(model.parameters(), lr=config.lr)
-    optimizer = get_std_opt(model)
-    train(train_dataloader, dev_dataloader, model, model_par, criterion, optimizer)
+    if config.use_smoothing:
+        criterion = LabelSmoothing(size=config.tgt_vocab_size, padding_idx=config.padding_idx, smoothing=0.1)
+        criterion.cuda()
+    else:
+        criterion = torch.nn.CrossEntropyLoss(ignore_index=0, reduction='sum')
+    if config.use_noamopt:
+        optimizer = get_std_opt(model)
+    else:
+        optimizer = torch.optim.AdamW(model.parameters(), lr=config.lr)
+    # train(train_dataloader, dev_dataloader, model, model_par, criterion, optimizer)
     test(test_dataloader, model, criterion)
 
 
@@ -88,8 +94,7 @@ def check_opt():
 
 if __name__ == "__main__":
     import os
-    # os.environ['CUDA_VISIBLE_DEVICES'] = '2, 3'
+    os.environ['CUDA_VISIBLE_DEVICES'] = '2, 3'
     import warnings
     warnings.filterwarnings('ignore')
-    # run()
-    check_opt()
+    run()

@@ -1,8 +1,9 @@
 import torch
 from data_loader import subsequent_mask
 
-class Beam():
-    ''' Beam search '''
+
+class Beam:
+    """ Beam search """
 
     def __init__(self, size, pad, bos, eos, device=False):
 
@@ -24,11 +25,11 @@ class Beam():
         self.next_ys[0][0] = self.BOS
 
     def get_current_state(self):
-        "Get the outputs for the current timestep."
+        """Get the outputs for the current timestep."""
         return self.get_tentative_hypothesis()
 
     def get_current_origin(self):
-        "Get the backpointers for the current timestep."
+        """Get the backpointers for the current timestep."""
         return self.prev_ks[-1]
 
     @property
@@ -36,7 +37,7 @@ class Beam():
         return self._done
 
     def advance(self, word_logprob):
-        "Update beam status and check if finished or not."
+        """Update beam status and check if finished or not."""
         num_words = word_logprob.size(1)
 
         # Sum the previous scores.
@@ -66,16 +67,16 @@ class Beam():
         return self._done
 
     def sort_scores(self):
-        "Sort the scores."
+        """Sort the scores."""
         return torch.sort(self.scores, 0, True)
 
     def get_the_best_score_and_idx(self):
-        "Get the score of the best in the beam."
+        """Get the score of the best in the beam."""
         scores, ids = self.sort_scores()
         return scores[1], ids[1]
 
     def get_tentative_hypothesis(self):
-        "Get the decoded sequence for the current timestep."
+        """Get the decoded sequence for the current timestep."""
 
         if len(self.next_ys) == 1:
             dec_seq = self.next_ys[0].unsqueeze(1)
@@ -97,15 +98,16 @@ class Beam():
 
         return list(map(lambda x: x.item(), hyp[::-1]))
 
+
 def beam_search(model, src, src_mask, max_len, pad, bos, eos, beam_size, device):
-    ''' Translation work in one batch '''
+    """ Translation work in one batch """
 
     def get_inst_idx_to_tensor_position_map(inst_idx_list):
-        ''' Indicate the position of an instance in a tensor. '''
+        """ Indicate the position of an instance in a tensor. """
         return {inst_idx: tensor_position for tensor_position, inst_idx in enumerate(inst_idx_list)}
 
     def collect_active_part(beamed_tensor, curr_active_inst_idx, n_prev_active_inst, n_bm):
-        ''' Collect tensor parts associated to active instances. '''
+        """ Collect tensor parts associated to active instances. """
 
         _, *d_hs = beamed_tensor.size()
         n_curr_active_inst = len(curr_active_inst_idx)
@@ -135,7 +137,7 @@ def beam_search(model, src, src_mask, max_len, pad, bos, eos, beam_size, device)
 
     def beam_decode_step(
             inst_dec_beams, len_dec_seq, enc_output, inst_idx_to_position_map, n_bm):
-        ''' Decode and update beam status, and then return active beam idx '''
+        """ Decode and update beam status, and then return active beam idx """
 
         def prepare_beam_dec_seq(inst_dec_beams, len_dec_seq):
             dec_partial_seq = [b.get_current_state() for b in inst_dec_beams if not b.done]
