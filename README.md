@@ -37,16 +37,16 @@ Model 2 （当前最优模型）可以在如下链接下载：
 
 链接: https://pan.baidu.com/s/1cjZglVAgpVSwTo5TlhSwzQ  密码: ifj2
 
-## With Beam Search
+## Beam Search
 
-使用了上述模型2，训练24个epoch后的结果
+当前最优模型（Model 2）使用beam search测试的结果
 
 | Beam_size | Test Bleu |
-| --------- | --------- |
-| 3         | 26.60     |
-| 5         | 26.69     |
+| :-------: | :-------: |
+|     3     |   26.80   |
+|     5     | **26.86** |
 
 ## TODO
 
-- Beyond LabelSmoothing: https://arxiv.org/pdf/2012.04987.pdf
+- Beyond Label Smoothing: https://arxiv.org/pdf/2012.04987.pdf
 
