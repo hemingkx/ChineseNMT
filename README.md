@@ -27,7 +27,6 @@ Homework2 of Computational Linguistics -- NMT(en-ch)
 |   1   |   No    |       No       |     24.07     |   24.03   |
 |   2   |   Yes   |       No       |   **26.08**   | **25.94** |
 |   3   |   No    |      Yes       |     23.92     |   23.84   |
-|   4   |   Yes   |      Yes       |               |           |
 
 实验结果在`./experiment/train.log`文件中，测试集翻译结果在`./experiment/output.txt`中。
 
