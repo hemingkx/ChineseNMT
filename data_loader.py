@@ -1,4 +1,3 @@
-
 import torch
 import json
 import numpy as np
@@ -61,7 +60,7 @@ class MTDataset(Dataset):
         self.out_en_sent, self.out_cn_sent = self.get_dataset(data_path, sort=True)
         self.sp_eng = english_tokenizer_load()
         self.sp_chn = chinese_tokenizer_load()
-        self.PAD = self.sp_eng.pad_id()
+        self.PAD = self.sp_eng.pad_id()  # 0
         self.BOS = self.sp_eng.bos_id()  # 2
         self.EOS = self.sp_eng.eos_id()  # 3
 

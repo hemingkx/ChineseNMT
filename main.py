@@ -73,11 +73,12 @@ def run():
         optimizer = get_std_opt(model)
     else:
         optimizer = torch.optim.AdamW(model.parameters(), lr=config.lr)
-    # train(train_dataloader, dev_dataloader, model, model_par, criterion, optimizer)
+    train(train_dataloader, dev_dataloader, model, model_par, criterion, optimizer)
     test(test_dataloader, model, criterion)
 
 
 def check_opt():
+    """check learning rate changes"""
     import numpy as np
     import matplotlib.pyplot as plt
     model = make_model(config.src_vocab_size, config.tgt_vocab_size, config.n_layers,
@@ -88,7 +89,7 @@ def check_opt():
             NoamOpt(512, 1, 20000, None),
             NoamOpt(256, 1, 10000, None)]
     plt.plot(np.arange(1, 50000), [[opt.rate(i) for opt in opts] for i in range(1, 50000)])
-    plt.legend(["opt", "512:20000", "256:10000"])
+    plt.legend(["512:10000", "512:20000", "256:10000"])
     plt.show()
 
 

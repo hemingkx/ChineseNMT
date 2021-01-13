@@ -20,7 +20,7 @@ lr = 3e-4
 # greed decode的最大句子长度
 max_len = 60
 # beam size for bleu
-beam_size = 5
+beam_size = 3
 # Label Smoothing
 use_smoothing = False
 # NoamOpt
