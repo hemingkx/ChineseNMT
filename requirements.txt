@@ -1,0 +1,54 @@
+backcall==0.2.0
+certifi==2020.12.5
+click==7.1.2
+cycler==0.10.0
+Cython==0.29.21
+decorator==4.4.2
+gensim==3.8.3
+h5py @ file:///tmp/build/80754af9/h5py_1593454122442/work
+ipykernel @ file:///tmp/build/80754af9/ipykernel_1596207638929/work/dist/ipykernel-5.3.4-py3-none-any.whl
+ipython @ file:///tmp/build/80754af9/ipython_1598883821407/work
+ipython-genutils==0.2.0
+jedi @ file:///tmp/build/80754af9/jedi_1598371611696/work
+joblib @ file:///tmp/build/80754af9/joblib_1601912903842/work
+jupyter-client @ file:///tmp/build/80754af9/jupyter_client_1594826976318/work
+jupyter-core==4.6.3
+kiwisolver==1.2.0
+matplotlib @ file:///tmp/build/80754af9/matplotlib-base_1597876319132/work
+mkl-fft==1.2.0
+mkl-random==1.1.1
+mkl-service==2.3.0
+nltk @ file:///tmp/build/80754af9/nltk_1592496090529/work
+notify2==0.3.1
+numpy @ file:///tmp/build/80754af9/numpy_and_numpy_base_1596233721170/work
+olefile==0.46
+pandas @ file:///tmp/build/80754af9/pandas_1602088120436/work
+parso==0.7.0
+pexpect==4.8.0
+pickleshare==0.7.5
+Pillow @ file:///tmp/build/80754af9/pillow_1594307295532/work
+portalocker==2.0.0
+prompt-toolkit @ file:///tmp/build/80754af9/prompt-toolkit_1598885458782/work
+ptyprocess==0.6.0
+pycocotools==2.0.2
+Pygments @ file:///tmp/build/80754af9/pygments_1600458456400/work
+pyparsing==2.4.7
+python-dateutil==2.8.1
+pytz==2020.1
+pyzmq==19.0.2
+regex @ file:///tmp/build/80754af9/regex_1602786672676/work
+sacrebleu==1.4.14
+scikit-learn @ file:///tmp/build/80754af9/scikit-learn_1598376899566/work
+scipy @ file:///tmp/build/80754af9/scipy_1597686649129/work
+sentencepiece==0.1.94
+sip==4.19.13
+six==1.15.0
+smart-open==4.0.1
+threadpoolctl @ file:///tmp/tmp9twdgx9k/threadpoolctl-2.1.0-py3-none-any.whl
+torch==1.5.1
+torchsummary==1.5.1
+torchvision==0.6.0a0+35d732a
+tornado==6.0.4
+tqdm @ file:///tmp/build/80754af9/tqdm_1600709023549/work
+traitlets @ file:///tmp/build/80754af9/traitlets_1600712396819/work
+wcwidth @ file:///tmp/build/80754af9/wcwidth_1593447189090/work

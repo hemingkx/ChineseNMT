@@ -2,6 +2,8 @@
 
 基于transformer的英译中翻译模型🤗。
 
+项目说明参考知乎文章：[教你用PyTorch玩转Transformer英译中翻译模型！](https://zhuanlan.zhihu.com/p/347061440)
+
 ## Data Process
 
 ### 分词
@@ -13,6 +15,21 @@
 ## Model
 
 采用Harvard开源的 [transformer-pytorch](http://nlp.seas.harvard.edu/2018/04/03/attention.html) ，中文说明可参考 [传送门](https://zhuanlan.zhihu.com/p/144825330) 。
+
+## Requirements
+
+This repo was tested on Python 3.6+ and PyTorch 1.5.1. The main requirements are:
+
+- tqdm
+- pytorch >= 1.5.1
+- sacrebleu >= 1.4.14
+- sentencepiece >= 0.1.94
+
+To get the environment settled quickly, run:
+
+```
+pip install -r requirements.txt
+```
 
 ## Usage
 
@@ -32,7 +49,7 @@
 
 ## Model
 
-Model 2 （当前最优模型）可以在如下链接下载😊：
+训练好的 Model 2 模型（当前最优模型）可以在如下链接直接下载😊：
 
 链接: https://pan.baidu.com/s/1cjZglVAgpVSwTo5TlhSwzQ  密码: ifj2
 
