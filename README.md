@@ -37,6 +37,14 @@ pip install -r requirements.txt
 
 - 由于transformer显存要求，支持MultiGPU，需要设置`config.py`中的`device_id`列表以及`main.py`中的`os.environ['CUDA_VISIBLE_DEVICES']`。
 
+如要运行模型，可在命令行输入：
+
+```
+python main.py
+```
+
+实验结果在`./experiment/train.log`文件中，测试集翻译结果在`./experiment/output.txt`中。
+
 ## Results
 
 | Model | NoamOpt | LabelSmoothing | Best Dev Bleu | Test Bleu |
@@ -44,8 +52,6 @@ pip install -r requirements.txt
 |   1   |   No    |       No       |     24.07     |   24.03   |
 |   2   |   Yes   |       No       |   **26.08**   | **25.94** |
 |   3   |   No    |      Yes       |     23.92     |   23.84   |
-
-实验结果在`./experiment/train.log`文件中，测试集翻译结果在`./experiment/output.txt`中。
 
 ## Pretrained Model
 
