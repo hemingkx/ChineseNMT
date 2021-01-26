@@ -47,7 +47,7 @@ pip install -r requirements.txt
 
 实验结果在`./experiment/train.log`文件中，测试集翻译结果在`./experiment/output.txt`中。
 
-## Model
+## Pretrained Model
 
 训练好的 Model 2 模型（当前最优模型）可以在如下链接直接下载😊：
 
