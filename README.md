@@ -69,7 +69,7 @@ python main.py
 
 ## One Sentence Translation
 
-将训练好的model或者上述Pretrained model以`model.pth`命名，保存在`./experiment`路径下。在main.py中运行translate_example，即可实现单句翻译。
+将训练好的model或者上述Pretrained model以`model.pth`命名，保存在`./experiment`路径下。在`main.py`中运行`translate_example`，即可实现单句翻译。
 
 如英文输入单句为：
 
