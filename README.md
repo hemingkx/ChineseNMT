@@ -67,3 +67,25 @@ python main.py
 | :-------: | :---: | :---: | :---: | :-------: |
 | Test Bleu | 26.59 | 26.80 | 26.84 | **26.86** |
 
+## One Sentence Translation
+
+将训练好的model或者上述Pretrained model以`model.pth`命名，保存在`./experiment`路径下。在main.py中运行translate_example，即可实现单句翻译。
+
+如英文输入单句为：
+
+```
+The near-term policy remedies are clear: raise the minimum wage to a level that will keep a fully employed worker and his or her family out of poverty, and extend the earned-income tax credit to childless workers.
+```
+
+ground truth为：
+
+```
+近期的政策对策很明确：把最低工资提升到足以一个全职工人及其家庭免于贫困的水平，扩大对无子女劳动者的工资所得税减免。
+```
+
+beam size = 3的翻译结果为：
+
+```
+短期政策方案很清楚:把最低工资提高到充分就业的水平,并扩大向无薪工人发放所得的税收信用。
+```
+

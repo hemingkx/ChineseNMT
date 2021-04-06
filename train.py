@@ -182,3 +182,21 @@ def test(data, model, criterion):
                               MultiGPULossCompute(model.generator, criterion, config.device_id, None))
         bleu_score = evaluate(data, model, 'test')
         logging.info('Test loss: {},  Bleu Score: {}'.format(test_loss, bleu_score))
+
+
+def translate(src, model, use_beam=True):
+    """用训练好的模型进行预测单句，打印模型翻译结果"""
+    sp_chn = chinese_tokenizer_load()
+    with torch.no_grad():
+        model.load_state_dict(torch.load(config.model_path))
+        model.eval()
+        src_mask = (src != 0).unsqueeze(-2)
+        if use_beam:
+            decode_result, _ = beam_search(model, src, src_mask, config.max_len,
+                                           config.padding_idx, config.bos_idx, config.eos_idx,
+                                           config.beam_size, config.device)
+            decode_result = [h[0] for h in decode_result]
+        else:
+            decode_result = batch_greedy_decode(model, src, src_mask, max_len=config.max_len)
+        translation = [sp_chn.decode_ids(_s) for _s in decode_result]
+        print(translation[0])

@@ -1,12 +1,14 @@
 import utils
 import config
 import logging
+import numpy as np
 
 import torch
 from torch.utils.data import DataLoader
 
-from train import train, test
+from train import train, test, translate
 from data_loader import MTDataset
+from utils import english_tokenizer_load
 from model import make_model, LabelSmoothing
 
 
@@ -93,9 +95,30 @@ def check_opt():
     plt.show()
 
 
+def one_sentence_translate(sent, beam_search=True):
+    # 初始化模型
+    model = make_model(config.src_vocab_size, config.tgt_vocab_size, config.n_layers,
+                       config.d_model, config.d_ff, config.n_heads, config.dropout)
+    BOS = english_tokenizer_load().bos_id()  # 2
+    EOS = english_tokenizer_load().eos_id()  # 3
+    src_tokens = [[BOS] + english_tokenizer_load().EncodeAsIds(sent) + [EOS]]
+    batch_input = torch.LongTensor(np.array(src_tokens)).to(config.device)
+    translate(batch_input, model, use_beam=beam_search)
+
+
+def translate_example():
+    """单句翻译示例"""
+    sent = "The near-term policy remedies are clear: raise the minimum wage to a level that will keep a " \
+           "fully employed worker and his or her family out of poverty, and extend the earned-income tax credit " \
+           "to childless workers."
+    # tgt: 近期的政策对策很明确：把最低工资提升到足以一个全职工人及其家庭免于贫困的水平，扩大对无子女劳动者的工资所得税减免。
+    one_sentence_translate(sent, beam_search=True)
+
+
 if __name__ == "__main__":
     import os
     os.environ['CUDA_VISIBLE_DEVICES'] = '2, 3'
     import warnings
     warnings.filterwarnings('ignore')
-    run()
+    # run()
+    translate_example()

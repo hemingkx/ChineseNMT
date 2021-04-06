@@ -3,7 +3,6 @@ import json
 import numpy as np
 from torch.autograd import Variable
 from torch.utils.data import Dataset
-from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
 from utils import english_tokenizer_load
 from utils import chinese_tokenizer_load
@@ -30,13 +29,13 @@ class Batch:
         self.src_text = src_text
         self.trg_text = trg_text
         src = src.to(DEVICE)
-        trg = trg.to(DEVICE)
         self.src = src
         # 对于当前输入的句子非空部分进行判断成bool序列
         # 并在seq length前面增加一维，形成维度为 1×seq length 的矩阵
         self.src_mask = (src != pad).unsqueeze(-2)
         # 如果输出目标不为空，则需要对decoder要使用到的target句子进行mask
         if trg is not None:
+            trg = trg.to(DEVICE)
             # decoder要用到的target输入部分
             self.trg = trg[:, :-1]
             # decoder训练时应预测输出的target结果
@@ -104,18 +103,3 @@ class MTDataset(Dataset):
                                     batch_first=True, padding_value=self.PAD)
 
         return Batch(src_text, tgt_text, batch_input, batch_target, self.PAD)
-
-
-if __name__ == "__main__":
-    dataset = MTDataset(config.test_data_path)
-    dataloader = DataLoader(dataset, batch_size=2, shuffle=True, collate_fn=dataset.collate_fn)
-    for batch in dataloader:
-        src = batch.src
-        trg = batch.trg
-        src_t = batch.src_text
-        tgt_t = batch.trg_text
-        print(src[0])
-        print(trg[0])
-        print(tgt_t[0])
-        print(src_t[0])
-        break
