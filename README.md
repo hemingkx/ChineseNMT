@@ -89,3 +89,30 @@ beam size = 3的翻译结果为：
 短期政策方案很清楚:把最低工资提高到充分就业的水平,并扩大向无薪工人发放所得的税收信用。
 ```
 
+## Mention
+
+The codes released in this reposity are only tested successfully with **Linux**. If you wanna try it with **Windows**, steps below may be useful to you as mentioned in [issue 2](https://github.com/hemingkx/ChineseNMT/issues/2):
+
+1. **adding utf-8 encoding declaration:**
+
+   in lines 16 and 19 of get_corpus.py:
+
+   ```
+   with open(ch_path, "w", encoding="utf-8") as fch:
+   with open(en_path, "w", encoding="utf-8") as fen:
+   ```
+
+   in line 165 of train.py:
+
+   ```
+   with open(config.output_path, "w", encoding="utf-8") as fp:
+   ```
+
+2. **using conda command to install sacrebleu if Anoconda is used for building your virtual env:**
+
+   ```
+   conda install -c conda-forge sacrebleu
+   ```
+
+For any other problems you meet when doing your own project, welcome to issuing or sending emails to me 😊~
+
