@@ -166,8 +166,8 @@ def evaluate(data, model, mode='dev', use_beam=True):
             for i in range(len(trg)):
                 line = "idx:" + str(i) + trg[i] + '|||' + res[i] + '\n'
                 fp.write(line)
-    res = [res]
-    bleu = sacrebleu.corpus_bleu(trg, res, tokenize='zh')
+    trg = [trg]
+    bleu = sacrebleu.corpus_bleu(res, trg, tokenize='zh')
     return float(bleu.score)
 
 

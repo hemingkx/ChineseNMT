@@ -4,6 +4,10 @@
 
 项目说明参考知乎文章：[教你用PyTorch玩转Transformer英译中翻译模型！](https://zhuanlan.zhihu.com/p/347061440)
 
+## Data
+
+The dataset is from [WMT 2018 Chinese-English track](http://statmt.org/wmt18/translation-task.html) (Only NEWS Area)
+
 ## Data Process
 
 ### 分词
