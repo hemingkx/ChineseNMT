@@ -49,6 +49,8 @@ python main.py
 
 实验结果在`./experiment/train.log`文件中，测试集翻译结果在`./experiment/output.txt`中。
 
+> 在两块GeForce GTX 1080 Ti上运行，每个epoch用时一小时左右。
+
 ## Results
 
 | Model | NoamOpt | LabelSmoothing | Best Dev Bleu | Test Bleu |
