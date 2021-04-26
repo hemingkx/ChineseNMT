@@ -1,4 +1,4 @@
-Language: 简体中文|[English](https://github.com/hemingkx/ChineseNMT/blob/master/README-en.md)
+Language: 简体中文 | [English](https://github.com/hemingkx/ChineseNMT/blob/master/README-en.md)
 
 # ChineseNMT
 
