@@ -65,7 +65,7 @@ python main.py
 
 训练好的 Model 2 模型（当前最优模型）可以在如下链接直接下载😊：
 
-链接: https://pan.baidu.com/s/1cjZglVAgpVSwTo5TlhSwzQ  密码: ifj2
+链接: https://pan.baidu.com/s/1RKC-HV_UmXHq-sy1-yZd2Q  密码: g9wl
 
 ## Beam Search
 
