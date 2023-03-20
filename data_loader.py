@@ -91,8 +91,9 @@ class MTDataset(Dataset):
         return len(self.out_en_sent)
 
     def collate_fn(self, batch):
-        src_text = [x[0] for x in batch]
-        tgt_text = [x[1] for x in batch]
+        src_text, tgt_text = batch # 每次给出的batch是一个(2, batch_size)的尺寸，而并非(batch_size, 2)的尺寸
+        # src_text = [x[0] for x in batch]
+        # tgt_text = [x[1] for x in batch]
 
         src_tokens = [[self.BOS] + self.sp_eng.EncodeAsIds(sent) + [self.EOS] for sent in src_text]
         tgt_tokens = [[self.BOS] + self.sp_chn.EncodeAsIds(sent) + [self.EOS] for sent in tgt_text]
